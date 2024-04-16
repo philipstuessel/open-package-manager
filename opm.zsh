@@ -4,7 +4,7 @@ opm_check() {
         echo "${RED}dependency.json File not found${NC}"
         return 0
     fi
-    return 0
+    return 1
 }
 
 opm_config() {
@@ -86,7 +86,7 @@ opm_core() {
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo "${BLUE}Open Package Manager (OPM)${NC}"
-        echo "${BOLD}v.0.1.0${NC}"
+        echo "${BOLD}v.0.1.1${NC}"
         echo "${YELLOW}JAP plugin${NC}"
         elif [[ "$1" == "i" || "$1" == "install" ]]; then
             opm_check
