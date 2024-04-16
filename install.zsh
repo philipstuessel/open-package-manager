@@ -6,5 +6,5 @@ else
 fi
 
 source ~/.zshrc
-fetch ~/jap/plugins/packages/ ~/jap/plugins/packages/opm.zsh https://github.com/philipstuessel/open-package-manager/main/opm.zsh
+fetch ~/jap/plugins/packages/ ~/jap/plugins/packages/opm.zsh https://raw.githubusercontent.com/philipstuessel/open-package-manager/main/opm.zsh
 echo "--OPM is installed--"
