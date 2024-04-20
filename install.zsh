@@ -1,10 +1,8 @@
-#!/bin/zsh
-if command -v jq &> /dev/null; then
-    echo ""
-else
-    brew install jq
-fi
-
 source ~/.zshrc
-fetch ~/jap/plugins/packages/ ~/jap/plugins/packages/opm.zsh https://raw.githubusercontent.com/philipstuessel/open-package-manager/main/opm.zsh
+name="opm"
+folder="${JAP_FOLDER}plugins/packages/${name}/"
+folder_config="${folder}config/"
+fetch2 $folder https://raw.githubusercontent.com/philipstuessel/open-package-manager/main/opm.zsh
+fetch2 $folder_config https://raw.githubusercontent.com/philipstuessel/open-package-manager/main/config/opm.config.json
+fetch2 $folder_config https://raw.githubusercontent.com/philipstuessel/open-package-manager/main/config/roots.json
 echo "--OPM is installed--"
