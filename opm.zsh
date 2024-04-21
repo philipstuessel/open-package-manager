@@ -74,7 +74,7 @@ opm_core() {
     if [[ "$1" == "s" ]]; then
         package="$2"
         script="$3"
-        folder_modules="$(pwd)/opm_modules/"
+        folder_modules="$(pwd)/opm_modules"
         script_folder="$folder_modules/$package"
         if [ ! -d "$script_folder" ]; then
             mkdir "$script_folder"
@@ -84,6 +84,26 @@ opm_core() {
                 echo -e "${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
             else
                 echo -e "${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
+        fi
+    fi
+    if [[ "$1" == "zip" ]];then
+        package="$2"
+        script="$3"
+        folder_modules="$(pwd)/opm_modules"
+        script_folder="$folder_modules/$package"
+        if [ ! -d "$script_folder" ]; then
+            mkdir "$script_folder"
+        fi
+        curl -L $script -o "${script_folder}/$(basename "$script")" >/dev/null 2>&1
+        if [ ! $? -eq 0 ]; then
+            echo -e "${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
+        fi
+        unzip "${script_folder}/$(basename "$script")" -d $script_folder >/dev/null 2>&1
+        rm "${script_folder}/$(basename "$script")"
+        if [ $? -eq 0 ]; then
+            echo -e "${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
+        else
+            echo -e "${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
         fi
     fi
 
@@ -97,6 +117,12 @@ if [[ "$1" == "d" ]];then
         mkdir "$package_folder"
     fi
     root=$(echo "$json_data" | jq '.root' | sed 's/^"\(.*\)"$/\1/')
+    filename=$(basename "$root")
+    file_extension=$(echo "$filename" | awk -F . '{print $NF}')
+    if [[ $file_extension == "zip" || $file_extension == "gzip" ]]; then
+        opm_core "zip" $package $root
+        return 0
+    else
     urlsd=$(echo "$json_data" | jq -r '.scripts[]')
     echo -n "\r${BYELLOW}opm${NC} ${GREEN}$package${NC}"
     while IFS= read -r urld; do
@@ -112,6 +138,7 @@ if [[ "$1" == "d" ]];then
         fi
     done <<< "$urlsd"
         echo -e "\r\033[K${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
+    fi
 fi
 }
 
@@ -241,7 +268,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v.0.3.1${NC}"
+        echo -e "${BOLD}v.0.3.2${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
