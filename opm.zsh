@@ -87,34 +87,32 @@ opm_core() {
         fi
     fi
 
-    if [[ "$1" == "d" ]];then 
-        script="$3"
-        json_data=$(curl -s "$script")
-        package=$(echo "$json_data" | jq '.name' | sed 's/^"\(.*\)"$/\1/')
-        folder_modules="$(pwd)/opm_modules/"
-        package_folder="$folder_modules$package"
-        if [ ! -d "$package_folder" ]; then
-            mkdir "$package_folder"
-        fi
-        root=$(echo "$json_data" | jq '.root' | sed 's/^"\(.*\)"$/\1/')
-        urls=$(echo "$json_data" | jq -r '.scripts[]')
-        while IFS= read -r urld; do
-            directory=$(dirname "$urld")
-            pack_folder="${folder_modules}/${package}/${directory}"
-            mkdir -p "$pack_folder"
-            script_url="${root}${urld}"
-            echo -n "\r${BYELLOW}opm${NC} ${GREEN}$package${NC}"
-            curl -o "${pack_folder}/$(basename "$urld")" $script_url > /dev/null 2>&1
-            if [ $? -eq 0 ]; then
-                echo -ne "\r${BYELLOW}opm${NC} ${GREEN}$package${NC} $urld : bulk request"
-                echo -ne "\033[K" 
-            else
-                echo -e "${RED}ERROR occurred with $script_url${NC}"
-                echo -ne "\033[K" 
-            fi
-        done <<< "$urls"
-        echo -ne "\r${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
+if [[ "$1" == "d" ]];then 
+    script="$3"
+    json_data=$(curl -s "$script")
+    package=$(echo "$json_data" | jq '.name' | sed 's/^"\(.*\)"$/\1/')
+    folder_modules="$(pwd)/opm_modules/"
+    package_folder="$folder_modules$package"
+    if [ ! -d "$package_folder" ]; then
+        mkdir "$package_folder"
     fi
+    root=$(echo "$json_data" | jq '.root' | sed 's/^"\(.*\)"$/\1/')
+    urlsd=$(echo "$json_data" | jq -r '.scripts[]')
+    echo -n "\r${BYELLOW}opm${NC} ${GREEN}$package${NC}"
+    while IFS= read -r urld; do
+        directory=$(dirname "$urld")
+        pack_folder="${folder_modules}/${package}/${directory}"
+        mkdir -p "$pack_folder"
+        script_url="${root}${urld}"
+        curl -o "${pack_folder}/$(basename "$urld")" $script_url > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo -ne "\r\033[K${BYELLOW}opm${NC} ${GREEN}$package${NC} $urld : bulk request"
+        else
+            echo -e "\r\033[K${RED}ERROR occurred with $script_url${NC}"
+        fi
+    done <<< "$urlsd"
+        echo -e "\r\033[K${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
+fi
 }
 
 opm_core_modules() {
@@ -207,13 +205,13 @@ content='{
   "description": "",
   "homepage": "",
   "author": "",
-  "license": "MIT",
+  "license": "",
   "repository": {
     "type": "",
     "url": ""
   },
   "root": "",
-  "scripts": ""
+  "scripts": []
 }'
     json_file="dependency-map.json"
     if [ ! -f "$json_file" ]; then
@@ -243,7 +241,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v.0.3.0${NC}"
+        echo -e "${BOLD}v.0.3.1${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
