@@ -153,13 +153,15 @@ opm_core_modules() {
             echo -e "dependency: ${BOLD}$package${NC} was added to dependency";
         fi
         opm_core "s" $package $script
-    fi
+    fi 
     if [[ "$1" == "dadd" ]];then # add package in dep
         package="$2"
         script="$3"
+        json_data=$(curl -s "$script")
+        version=$(echo "$json_data" | jq '.version' | sed 's/^"\(.*\)"$/\1/')
         file=$(opm_dep)
-        if jq ".dependencies | index(\"$package\")" "$file" | grep -q "null"; then
-            jq ".dependencies += [\"$package\"]" "$file" > tmp_config.json
+        if jq ".dependencies | has(\"$package\")" "$file" | grep -q "false"; then
+            jq ".dependencies += {\"$package\": \"$version\"}" "$file" > tmp_config.json
             mv tmp_config.json "$file"
             echo -e "dependency: ${BOLD}$package${NC} was added to dependency";
         fi
@@ -253,7 +255,7 @@ content='{
 "version": "1.0.0",
 "description": "",
     "scripts": [],
-    "dependencies": [],
+    "dependencies": {},
     "roots": []
 }';
     if [ ! -d "$folder" ]; then
@@ -268,7 +270,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v.0.3.2${NC}"
+        echo -e "${BOLD}v.0.3.3${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
