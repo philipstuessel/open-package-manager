@@ -1,4 +1,5 @@
 #!/bin/zsh
+source $JAP_FOLDER/plugins/packages/opm/opd.zsh
 MAIN_FOLDER="${JAP_FOLDER}plugins/packages/opm/config/"
 CONFIG_FILE="${MAIN_FOLDER}opm.config.json"
 ROOTS_FILE="${MAIN_FOLDER}roots.json"
@@ -94,6 +95,23 @@ opm_core() {
         if [ ! -d "$script_folder" ]; then
             mkdir "$script_folder"
         fi
+        if [[ "$4" == "api_github" ]];then
+            echo -n "${BYELLOW}opm${NC} ${GREEN}$package${NC} download start in (opm_modules)"
+            rm -rf "$script_folder"
+            curl -L $script -o "${folder_modules}/$5.zip" >/dev/null 2>&1
+            if [ ! $? -eq 0 ]; then
+                echo -e "${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
+            fi
+            unzip "${folder_modules}/$5.zip" -d $folder_modules >/dev/null 2>&1
+            rm "${folder_modules}/$5.zip"
+            mv "${folder_modules}/$5" $script_folder
+            if [ $? -eq 0 ]; then
+                echo -ne "\r${BBLUE}opm${NC} ${GREEN}$package${NC} Was add to (opm_modules)"
+            else
+                echo -ne "\r${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
+            fi
+            return 1
+        fi
         curl -L $script -o "${script_folder}/$(basename "$script")" >/dev/null 2>&1
         if [ ! $? -eq 0 ]; then
             echo -e "${BRED}opm${NC} ${RED}ERROR occurred with $package${NC}"
@@ -121,6 +139,16 @@ if [[ "$1" == "d" ]];then
     file_extension=$(echo "$filename" | awk -F . '{print $NF}')
     if [[ $file_extension == "zip" || $file_extension == "gzip" ]]; then
         opm_core "zip" $package $root
+        return 0
+    elif [[ $root == "api.github" ]];then
+        API_GITHUB="https://api.github.com/repos/"
+        git_url=$(echo "$json_data" | jq -r '.repository.url')
+        sha=$(echo "$json_data" | jq -r '.repository.sha')
+        author=$(echo $git_url | awk -F'/' '{print $4}')
+        repo=$(echo $git_url | awk -F'/' '{print $5}')
+        zip_url="${API_GITHUB}${author}/${author}/zipball/${sha}"
+        zip_name="${author}-${author}-$(echo $sha | cut -c 1-7)"
+        opm_core "zip" $package $zip_url "api_github" $zip_name
         return 0
     else
     urlsd=$(echo "$json_data" | jq -r '.scripts[]')
@@ -237,7 +265,8 @@ content='{
   "license": "",
   "repository": {
     "type": "",
-    "url": ""
+    "url": "",
+    "sha": ""
   },
   "root": "",
   "scripts": []
@@ -270,7 +299,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v.0.3.3${NC}"
+        echo -e "${BOLD}v0.4.0${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
