@@ -146,8 +146,9 @@ if [[ "$1" == "d" ]];then
         sha=$(echo "$json_data" | jq -r '.repository.sha')
         author=$(echo $git_url | awk -F'/' '{print $4}')
         repo=$(echo $git_url | awk -F'/' '{print $5}')
-        zip_url="${API_GITHUB}${author}/${author}/zipball/${sha}"
-        zip_name="${author}-${author}-$(echo $sha | cut -c 1-7)"
+        repo=$(basename "$git_url" .git)
+        zip_url="${API_GITHUB}${author}/${repo}/zipball/${sha}"
+        zip_name="${author}-${repo}-$(echo $sha | cut -c 1-7)"
         opm_core "zip" $package $zip_url "api_github" $zip_name
         return 0
     else
@@ -299,7 +300,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v0.4.0${NC}"
+        echo -e "${BOLD}v0.4.1${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
