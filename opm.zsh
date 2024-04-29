@@ -236,11 +236,13 @@ opm_modules() {
                 fi
             done <<< "$urls"
         done <<< "$scripts"
-        dependencies=$(jq -r '.dependencies[]' "$dep")
+        dependencies=$(jq -r '.dependencies | to_entries[] | "\(.key) \(.value)"' "$dep")
         while IFS= read -r pack; do
+            pack_name=$(echo "$pack" | awk '{print $1}')
+            pack_v=$(echo "$pack" | awk '{print $1}')
             while IFS= read -r url; do
                 json_data=$(curl -s "$url")
-                jq_output=$(echo "$json_data" | jq -r "to_entries[] | select(.key == \"$pack\") | .key + \" \" + (.value | tostring)")
+                jq_output=$(echo "$json_data" | jq -r "to_entries[] | select(.key == \"$pack_name\") | .key + \" \" + (.value | tostring)")
                 if [[ ! $jq_output == "" ]]; then
                     package=$(echo $jq_output | awk '{print $1}')
                     script=$(echo $jq_output | awk '{print $2}')
@@ -300,7 +302,7 @@ content='{
 opm() {
     if [[ "$1" == "v" || "$1" == "-v" ]]; then
         echo -e "${BLUE}Open Package Manager (OPM)${NC}"
-        echo -e "${BOLD}v0.4.1${NC}"
+        echo -e "${BOLD}v0.4.2${NC}"
         echo -e "${YELLOW}JAP plugin${NC}"
     elif [[ "$1" == "i" || "$1" == "install" ]]; then
             if [[ ! "$2" == "" ]];then
